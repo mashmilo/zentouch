@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zentouch</title>
+<link rel="icon" href="logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1c2424;--green:#2bbf8a;--green-d:#1d9a6e;--bg:#eef3f1;--card:#fff;--mute:#667370;--line:#dbe4e1}
+@media(prefers-color-scheme:dark){:root{--ink:#e8efed;--bg:#121817;--card:#1c2524;--mute:#8fa09c;--line:#2c3836}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Bricolage Grotesque",system-ui,sans-serif}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--green);outline-offset:2px}
+.hide{display:none!important}
+.btn{background:var(--green);color:#10201a;border:0;border-radius:10px;padding:10px 18px;font-weight:700}
+.btn:hover{background:var(--green-d);color:#fff}
+.btn:disabled{opacity:.5}
+.ghost{background:none;border:0;color:var(--mute);padding:6px 10px;border-radius:8px;font-weight:500}
+.ghost:hover{background:var(--bg)}
+.ghost.on{color:var(--green-d);font-weight:700}
+input,textarea{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+/* auth */
+#auth{min-height:100vh;display:grid;place-items:center;padding:20px}
+#auth .box{width:100%;max-width:380px;background:var(--card);border-radius:20px;padding:32px;box-shadow:0 10px 40px #0001}
+#auth img{width:92px;height:92px;border-radius:20px;display:block;margin:0 auto 8px}
+#auth h1{text-align:center;margin:0 0 4px;font-size:32px}
+#auth p.sub{text-align:center;color:var(--mute);margin:0 0 20px}
+#auth form{display:grid;gap:10px}
+#err{color:#c0392b;min-height:1.4em;margin:0;font-size:14px}
+#swap{margin-top:12px;width:100%}
+/* app */
+header.top{position:sticky;top:0;z-index:5;background:var(--ink);color:#fff;display:flex;align-items:center;gap:12px;padding:10px 16px}
+@media(prefers-color-scheme:dark){header.top{background:#0b0f0e}}
+header.top img{width:36px;height:36px;border-radius:9px;background:#fff}
+header.top strong{font-size:22px;letter-spacing:-.02em}
+header.top .sp{flex:1}
+header.top .me{opacity:.85;font-size:14px}
+header.top nav{flex:1;min-width:0}
+header.top .ghost{color:#fff}
+header.top .ghost:hover{background:#ffffff22}
+main{max-width:600px;margin:20px auto;padding:0 12px 60px;display:grid;gap:14px}
+.card{background:var(--card);border-radius:14px;padding:16px;border:1px solid var(--line)}
+#postForm{display:grid;gap:10px}
+#postForm textarea{resize:vertical;min-height:70px}
+.row{display:flex;align-items:center;gap:10px}
+.row .sp{flex:1}
+label.pick{color:var(--green-d);font-weight:700;cursor:pointer;padding:6px 10px;border-radius:8px}
+label.pick:hover{background:var(--bg)}
+#fname{font-size:13px;color:var(--mute)}
+.post header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.post header div{flex:1;display:flex;flex-direction:column;line-height:1.25}
+.post small{color:var(--mute)}
+.av{width:40px;height:40px;border-radius:50%;background:var(--green);color:#10201a;display:grid;place-items:center;font-weight:700}
+.post p{margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.post img{width:100%;border-radius:10px;margin-top:6px;max-height:520px;object-fit:cover}
+.bar{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:10px;padding:2px 0;color:var(--mute);font-size:14px}
+.cm{padding-top:8px}
+.cm p{background:var(--bg);border-radius:12px;padding:6px 12px;margin:6px 0;font-size:15px}
+.cm form{display:flex;gap:8px;margin-top:8px}
+.empty{text-align:center;color:var(--mute);padding:30px 0}
+@media(prefers-reduced-motion:no-preference){.btn{transition:background .15s}}
+</style>
+</head>
+<body>
+
+<section id="auth" class="hide">
+  <div class="box">
+    <img src="logo.jpg" alt="Zentouch logo">
+    <h1>Zentouch</h1>
+    <p class="sub">Share posts and photos with friends.</p>
+    <form id="authForm">
+      <input id="name" placeholder="Full name" autocomplete="name" maxlength="40" class="hide">
+      <input id="email" type="email" placeholder="Email" autocomplete="email" required>
+      <input id="pw" type="password" placeholder="Password (6+ characters)" minlength="6" autocomplete="current-password" required>
+      <p id="err" role="alert"></p>
+      <button class="btn" id="authBtn">Log in</button>
+    </form>
+    <button class="ghost" id="swap">New here? Create an account</button>
+  </div>
+</section>
+
+<div id="app" class="hide">
+  <header class="top">
+    <img src="logo.jpg" alt=""><strong>Zentouch</strong>
+    <nav id="nav"><button data-t="home" class="on">Home</button><button data-t="people">People</button><button data-t="msgs">Messages</button><button data-t="alerts">Alerts<i id="badge" class="hide"></i></button><button data-t="me">Profile</button></nav>
+    <span class="sp"></span>
+    <span class="me" id="meName" style="display:none"></span>
+    <button class="ghost" id="logout">Log out</button>
+  </header>
+  <main>
+    <form class="card" id="postForm">
+      <textarea id="body" maxlength="2000" placeholder="What's on your mind?"></textarea>
+      <div class="row">
+        <label class="pick">Add photo<input id="file" type="file" accept="image/*" class="hide"></label>
+        <span id="fname"></span><span class="sp"></span>
+        <button class="btn" id="postBtn">Post</button>
+      </div>
+    </form>
+    <div id="feed"></div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+// 1) Paste your Supabase project values here (Project Settings > API)
+const SUPABASE_URL = "https://pbglvldcqhajshrlvcmo.supabase.co";
+const SUPABASE_KEY = "sb_publishable_q1UXEqfixURirnQjsVoNhw_h6gkwFhB";
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ago = d => { const s = (Date.now() - new Date(d)) / 1000;
+  if (s < 60) return "just now"; if (s < 3600) return Math.floor(s/60) + " min ago";
+  if (s < 86400) return Math.floor(s/3600) + " h ago"; return new Date(d).toLocaleDateString(); };
+
+if (SUPABASE_URL.startsWith("YOUR_")) {
+  document.body.innerHTML = '<p style="padding:30px;font-family:sans-serif">Open index.html and paste your Supabase URL and anon key at the top of the script.</p>';
+  throw new Error("Supabase not configured");
+}
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let me = null, mode = "login";
+
+/* ---------- auth ---------- */
+function setMode(m) {
+  mode = m;
+  $("#name").classList.toggle("hide", m === "login");
+  $("#name").required = m === "signup";
+  $("#authBtn").textContent = m === "login" ? "Log in" : "Create account";
+  $("#swap").textContent = m === "login" ? "New here? Create an account" : "Have an account? Log in";
+  $("#err").textContent = "";
+}
+$("#swap").onclick = () => setMode(mode === "login" ? "signup" : "login");
+
+$("#authForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const email = $("#email").value.trim(), password = $("#pw").value, name = $("#name").value.trim();
+  $("#err").textContent = "";
+  const r = mode === "login"
+    ? await db.auth.signInWithPassword({ email, password })
+    : await db.auth.signUp({ email, password, options: { data: { name } } });
+  if (r.error) { $("#err").textContent = r.error.message; return; }
+  if (mode === "signup" && !r.data.session) $("#err").textContent = "Check your email to confirm your account, then log in.";
+});
+$("#logout").onclick = () => db.auth.signOut();
+
+db.auth.onAuthStateChange((_e, session) => {
+  me = session ? session.user : null;
+  setTimeout(render, 0);
+});
+function render() {
+  $("#auth").classList.toggle("hide", !!me);
+  $("#app").classList.toggle("hide", !me);
+  if (me) { $("#meName").textContent = me.user_metadata?.name || me.email; loadFeed(); }
+}
+
+/* ---------- feed ---------- */
+async function loadFeed() {
+  let q = db.from("posts")
+    .select("id,body,image_url,created_at,user_id,profiles(name),likes(user_id),comments(id,body,created_at,profiles(name))")
+    .order("created_at", { ascending: false }).limit(50);
+  if (window.onlyFollowing) q = q.in("user_id", [...(window.followIds || []), me.id]);
+  const { data, error } = await q;
+  if (error) { $("#feed").innerHTML = '<p class="empty">' + esc(error.message) + "</p>"; return; }
+  $("#feed").innerHTML = data.length ? data.map(postHTML).join("")
+    : '<p class="empty">No posts yet. Write the first one above.</p>';
+}
+function postHTML(p) {
+  const liked = p.likes.some(l => l.user_id === me.id);
+  const cs = [...p.comments].sort((a, b) => a.created_at < b.created_at ? -1 : 1);
+  const nm = p.profiles?.name || "User";
+  return `<article class="card post" data-id="${p.id}" style="margin-bottom:14px">
+    <header><span class="av">${esc(nm[0].toUpperCase())}</span>
+      <div><b>${esc(nm)}</b><small>${ago(p.created_at)}</small></div>
+      ${p.user_id === me.id ? '<button class="ghost" data-act="del">Delete</button>' : '<button class="ghost" data-act="report">Report</button>'}</header>
+    ${p.body ? `<p>${esc(p.body)}</p>` : ""}
+    ${p.image_url ? `<img src="${esc(p.image_url)}" alt="Photo in post" loading="lazy">` : ""}
+    <div class="bar"><button class="ghost ${liked ? "on" : ""}" data-act="like">${liked ? "Liked" : "Like"} (${p.likes.length})</button>
+      <span>${cs.length} comment${cs.length === 1 ? "" : "s"}</span></div>
+    <div class="cm">${cs.map(c => `<p><b>${esc(c.profiles?.name || "User")}</b> ${esc(c.body)}</p>`).join("")}
+      <form data-act="comment"><input placeholder="Write a comment" maxlength="500" required><button class="btn">Send</button></form></div>
+  </article>`;
+}
+$("#feed").addEventListener("click", async e => {
+  const b = e.target.closest("button[data-act]"); if (!b) return;
+  const id = +b.closest(".post").dataset.id;
+  if (b.dataset.act === "report") {
+    const why = prompt("Why are you reporting this post?"); if (!why) return;
+    const x = await db.from("reports").insert({ post_id: id, reason: why.slice(0, 200) });
+    alert(x.error ? "You already reported this post." : "Thanks. We will review it."); return;
+  }
+  if (b.dataset.act === "del") { if (!confirm("Delete this post?")) return; await db.from("posts").delete().eq("id", id); }
+  if (b.dataset.act === "like") {
+    if (b.classList.contains("on")) await db.from("likes").delete().match({ post_id: id, user_id: me.id });
+    else await db.from("likes").insert({ post_id: id });
+  }
+  loadFeed();
+});
+$("#feed").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target, id = +f.closest(".post").dataset.id, v = f.querySelector("input").value.trim();
+  if (!v) return;
+  await db.from("comments").insert({ post_id: id, body: v });
+  loadFeed();
+});
+
+/* ---------- new post ---------- */
+$("#file").onchange = e => { $("#fname").textContent = e.target.files[0]?.name || ""; };
+$("#postForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const body = $("#body").value.trim(), file = $("#file").files[0];
+  if (!body && !file) return;
+  const btn = $("#postBtn"); btn.disabled = true;
+  let image_url = null;
+  if (file) {
+    if (file.size > 5e6) { alert("Image must be under 5 MB."); btn.disabled = false; return; }
+    const path = `${me.id}/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
+    const up = await db.storage.from("images").upload(path, file);
+    if (up.error) { alert(up.error.message); btn.disabled = false; return; }
+    image_url = db.storage.from("images").getPublicUrl(path).data.publicUrl;
+  }
+  const r = await db.from("posts").insert({ body: body || null, image_url });
+  btn.disabled = false;
+  if (r.error) { alert(r.error.message); return; }
+  e.target.reset(); $("#fname").textContent = "";
+  loadFeed();
+});
+</script>
+<script src="extras.js"></script>
+</body>
+</html>
